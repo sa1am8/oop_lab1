@@ -17,8 +17,6 @@ class Expression:
         self.cell = cell
 
     def parse(self):
-        # = 123 + (123 * 1  - (12 / 2 - 1))
-        # = [C0:R3] + (123 * 1  - (12 / 2 - 1))
         self.current_index = 0
         if not self.expression.startswith("="):
             return

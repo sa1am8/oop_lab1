@@ -7,7 +7,6 @@ class Cell:
         self._depends_on_me = set()
         self._i_depend_on = set()
 
-    # setter for value - always set value to str
     @property
     def value(self) -> str:
         return self._value
