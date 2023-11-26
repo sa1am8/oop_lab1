@@ -13,6 +13,8 @@ class Settings(BaseSettings):
     WINDOW_WIDTH: int = 800
     WINDOW_HEIGHT: int = 600
 
+    API_KEY: str
+
     class Config:
         env_file = "project.env", ".env"
 
