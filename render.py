@@ -4,6 +4,8 @@ from tkinter import ttk
 from settings import get_settings, Settings
 from models import Cell
 from expression import Expression
+from google_drive import driver
+from file import FileManager
 
 
 settings: Settings = get_settings()
@@ -41,11 +43,20 @@ class SpreadsheetApp(tk.Tk):
             )
 
         self.tree.bind("<Double-1>", self.edit_row)
+        # add button to save file
+        button_save = tk.Button(self, text="Save", command=self.save_file)
+        button_save.pack()
 
         self.tree["displaycolumns"] = self.tree["columns"]
         self.tree.pack(expand=True, fill=tk.BOTH)
 
-        self.load_data_from_google_drive()
+    def save_file(self):
+        message = tk.Label(self, text="File was saved")
+        message.pack()
+        message.after(5000, message.destroy)
+
+        body = FileManager.save_file(self.cells)
+        driver.save_sheet(body)
 
     def convert_to_coord(self, row: str, col: str) -> tuple[int, int]:
         row = (int(row.replace("R", "")),)
@@ -120,9 +131,6 @@ class SpreadsheetApp(tk.Tk):
             update_button = tk.Button(edit_window, text="Update", command=update_values)
             update_button.pack()
 
-    def load_data_from_google_drive(self):
-        pass
-
     def add_data(self):
         name = self.name_entry.get()
         size = self.size_entry.get()
@@ -138,8 +146,3 @@ class SpreadsheetApp(tk.Tk):
             self.tree.item(selected_item, values=(name, size))
             self.name_entry.delete(0, tk.END)
             self.size_entry.delete(0, tk.END)
-
-
-if __name__ == "__main__":
-    app = SpreadsheetApp()
-    app.mainloop()

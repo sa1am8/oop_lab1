@@ -1,9 +1,23 @@
 from models import Cell
+from settings import get_settings, Settings
+
+
+settings: Settings = get_settings()
 
 
 class FileManager:
-    def save_file():
-        pass
+    def save_file(cells: list[Cell]):
+        values = FileManager._compose_file(cells)
+
+        body = {
+            "values": values,
+            "formulas": {
+                f"{cell.row}:{cell.row}": {f"C{cell.col}": cell.expression}
+                for cell in cells
+                if cell.expression
+            },
+        }
+        return body
 
     def load_file(sheet, cells: list[Cell]):
         values = sheet.get("values", [])
@@ -25,5 +39,8 @@ class FileManager:
                     )
                 )
 
-    def _compose_file():
-        pass
+    def _compose_file(cells: list[Cell]):
+        return [
+            [cell.value for cell in cells[i : i + settings.COLUMNS]]
+            for i in range(0, len(cells), settings.COLUMNS)
+        ]

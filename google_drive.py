@@ -47,13 +47,26 @@ class GoogleDriveManager:
         downloaded_file.seek(0)
         return downloaded_file
 
-    def save_file_to_google_drive(self, file_name, file_data):
-        pass
+    def save_sheet(self, file_id: str, body: dict):
+        resp = (
+            self.sheet.values()
+            .append(
+                spreadsheetId=file_id,
+                range="Лист2!A1",
+                valueInputOption="RAW",
+                body=body,
+            )
+            .execute()
+        )
+        return resp
 
-    def read_file(self, file_id):
+    def read_file(self, file_id: str):
         return (
             self.service.spreadsheets()
             .values()
             .get(spreadsheetId=file_id, range="Sheet1!A1:Z1000")
             .execute()
         )
+
+
+driver = None
