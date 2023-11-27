@@ -56,7 +56,7 @@ class SpreadsheetApp(tk.Tk):
         message.after(5000, message.destroy)
 
         body = FileManager.save_file(self.cells)
-        driver.save_sheet(body)
+        print(driver.save_sheet(settings.FILE_ID, body))
 
     def convert_to_coord(self, row: str, col: str) -> tuple[int, int]:
         row = (int(row.replace("R", "")),)

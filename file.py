@@ -11,11 +11,6 @@ class FileManager:
 
         body = {
             "values": values,
-            "formulas": {
-                f"{cell.row}:{cell.row}": {f"C{cell.col}": cell.expression}
-                for cell in cells
-                if cell.expression
-            },
         }
         return body
 
@@ -26,21 +21,24 @@ class FileManager:
         FileManager._decompose_file(values, formulas, cells)
 
     def _decompose_file(values, formulas, cells: list[Cell]):
-        for row_idx, row in enumerate(values, start=1):
-            for col_idx, cell_value in enumerate(row, start=1):
-                cells.append(
-                    Cell(
-                        row=row_idx,
-                        col=col_idx,
-                        value=cell_value,
-                        expression=formulas.get(f"{row_idx}:{row_idx}", {}).get(
-                            f"C{col_idx}"
-                        ),
-                    )
+        for row_idx, row in enumerate(values):
+            for col_idx, cell_value in enumerate(row):
+                cells[settings.COLUMNS * (row_idx) + (col_idx)] = Cell(
+                    row=row_idx,
+                    col=col_idx,
+                    value=cell_value,
+                    expression=formulas.get(f"{row_idx}:{row_idx}", {}).get(
+                        f"C{col_idx}"
+                    ),
                 )
 
     def _compose_file(cells: list[Cell]):
         return [
-            [cell.value for cell in cells[i : i + settings.COLUMNS]]
+            [
+                {"userEnteredValue": {"formulaValue": cell.expression}}
+                if cell.expression
+                else cell.value
+                for cell in cells[i : i + settings.COLUMNS]
+            ]
             for i in range(0, len(cells), settings.COLUMNS)
         ]

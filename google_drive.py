@@ -49,10 +49,11 @@ class GoogleDriveManager:
 
     def save_sheet(self, file_id: str, body: dict):
         resp = (
-            self.sheet.values()
-            .append(
+            self.service.spreadsheets()
+            .values()
+            .update(
                 spreadsheetId=file_id,
-                range="Лист2!A1",
+                range="Аркуш1!A1",
                 valueInputOption="RAW",
                 body=body,
             )
@@ -64,9 +65,9 @@ class GoogleDriveManager:
         return (
             self.service.spreadsheets()
             .values()
-            .get(spreadsheetId=file_id, range="Sheet1!A1:Z1000")
+            .get(spreadsheetId=file_id, range="Аркуш1!A1:Z10")
             .execute()
         )
 
 
-driver = None
+driver = GoogleDriveManager()

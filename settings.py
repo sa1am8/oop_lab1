@@ -14,6 +14,7 @@ class Settings(BaseSettings):
     WINDOW_HEIGHT: int = 600
 
     API_KEY: str
+    FILE_ID: str
 
     class Config:
         env_file = "project.env", ".env"
