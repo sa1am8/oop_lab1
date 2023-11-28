@@ -81,6 +81,9 @@ class Expression:
         else:
             raise ValueError("Wrong expression")
 
+    def validate_coord(col: int, row: int) -> bool:
+        return 0 <= col < settings.COLUMNS and 0 <= row < settings.ROWS
+
     def evaluate(self, cells) -> str:
         self.current_index = 0
         self.cell.expression = self.expression
@@ -99,6 +102,8 @@ class Expression:
     def _evaluate_cell_reference(self, cell_reference: str, cells: list[Cell]):
         cell_reference = cell_reference[1:-1].replace("C", "").replace("R", "")
         col, row = map(int, cell_reference.split(":"))
+        if not Expression.validate_coord(col, row):
+            raise ValueError("Wrong cell reference")
 
         cell: Cell = cells[row][col]
         self.cell._i_depend_on.add(cell)
@@ -126,6 +131,8 @@ class Expression:
             elif node["operator"] == "*":
                 return left * right
             elif node["operator"] == "/":
+                if right == 0:
+                    raise ValueError("Division by zero")
                 return left / right
         elif node["type"] == "error":
             return node["value"]

@@ -75,7 +75,7 @@ class SpreadsheetApp(tk.Tk):
 
         for cell in cells:
             if cell.value:
-                row = cell.row + 1 if cell.row < 9 else chr(cell.row + 55)
+                row = cell.row + 1 if cell.row < 9 else chr(cell.row + 56)
                 values = self.tree.item(f"I00{row}")["values"]  # noqa E501
                 values[cell.col] = cell.value
                 self.tree.item(
