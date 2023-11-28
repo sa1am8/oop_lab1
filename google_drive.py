@@ -54,7 +54,7 @@ class GoogleDriveManager:
             .update(
                 spreadsheetId=file_id,
                 range="Аркуш1!A1",
-                valueInputOption="RAW",
+                valueInputOption="USER_ENTERED",
                 body=body,
             )
             .execute()

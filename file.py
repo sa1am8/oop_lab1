@@ -1,6 +1,6 @@
 from models import Cell
 from settings import get_settings, Settings
-
+import re
 
 settings: Settings = get_settings()
 
@@ -32,13 +32,23 @@ class FileManager:
                     ),
                 )
 
+    def _compose_expression(expression: str) -> str:
+        # change [C%d:R%d] to char(row)int(col) by regex
+        # [C0:R3] -> A1
+        expression = re.sub(
+            r"\[C(\d+):R(\d+)\]",
+            lambda match: f"{chr(int(match.group(2)) + 65)}{int(match.group(1)) + 1}",
+            expression,
+        )
+        return "=" + expression
+
     def _compose_file(cells: list[Cell]):
         return [
             [
-                {"userEnteredValue": {"formulaValue": cell.expression}}
+                FileManager._compose_expression(cell.expression)  # noqa E501
                 if cell.expression
                 else cell.value
-                for cell in cells[i : i + settings.COLUMNS]  # noqa E203
+                for cell in cell_row
             ]
-            for i in range(0, len(cells), settings.COLUMNS)
+            for cell_row in cells
         ]
