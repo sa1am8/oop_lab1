@@ -28,6 +28,10 @@ class Cell:
         return self.tree.item(row)["values"][int(col) - 1]
 
     def get_coord(col: str, row: str) -> tuple[int, int]:
-        row = int(row.replace("I", "")) - 1
+        if row[-1].isdigit():
+            row = int(row[-1]) - 1
+        else:
+            row = ord(row[-1]) - 65 + 10  # 65 is ASCII code for 'A'
+
         col = int(col.replace("#", "")) - 1
         return row, col

@@ -50,6 +50,9 @@ class SpreadsheetApp(tk.Tk):
         self.tree["displaycolumns"] = self.tree["columns"]
         self.tree.pack(expand=True, fill=tk.BOTH)
 
+        self.button_add = tk.Button(self, text="Add", command=self.add_row)
+        self.button_add.pack()
+
     def save_file(self):
         message = tk.Label(self, text="File was saved")
         message.pack()
@@ -63,7 +66,7 @@ class SpreadsheetApp(tk.Tk):
         column = (int(col.replace("C", "")),)
         return row, column
 
-    def refresh_values(self, cells: list[Cell]):
+    def refresh_values(self, cells: list[Cell] | set[Cell]):
         for cell in cells:
             if cell.value:
                 values = self.tree.item(
@@ -77,17 +80,34 @@ class SpreadsheetApp(tk.Tk):
                     values=values,  # noqa E501
                 )
 
+    def check_circle(self, cell1: Cell, cell2: Cell):
+        if cell1 in cell2._i_depend_on:
+            raise ValueError("Circular dependency")
+
+    def update_dependent_cells(self, cell: Cell):
+        cells_to_update = set()
+
+        for dcell in cell._depends_on_me:
+            self.check_circle(dcell, cell)
+
+            dcell.value = Expression(dcell.expression, dcell).evaluate(self.cells)
+            cells_to_update.add(dcell)
+            for cell in self.update_dependent_cells(dcell):
+                cells_to_update.add(cell)
+
+        return cells_to_update
+
     def edit_row(self, event):
         selected_item = self.tree.selection()
 
         if selected_item and not self.window_opened:
             col = self.tree.identify_column(event.x)
             row = self.tree.identify_row(event.y)
-            ccol, crow = Cell.get_coord(col, row)
+            crow, ccol = Cell.get_coord(col, row)
 
-            if crow == -1:
+            if ccol == -1:
                 return
-            cell: Cell = self.cells[crow * settings.COLUMNS + ccol]
+            cell: Cell = self.cells[ccol * settings.COLUMNS + crow]
             value = cell.expression if cell.expression else cell.value
             edit_window = tk.Toplevel(self)
             edit_window.title("Edit Row")
@@ -109,7 +129,7 @@ class SpreadsheetApp(tk.Tk):
 
                 col = self.tree.identify_column(event.x)
                 row = self.tree.identify_row(event.y)
-                ccol, crow = Cell.get_coord(col, row)
+                crow, ccol = Cell.get_coord(col, row)
                 cell: Cell = self.cells[crow * settings.COLUMNS + ccol]
                 expression = Expression(updated_values, cell)
 
@@ -118,16 +138,23 @@ class SpreadsheetApp(tk.Tk):
 
                 cell.value = updated_values
                 values = self.tree.item(selected_item)["values"]
-                values[crow] = updated_values
+                values[ccol] = updated_values
 
                 self.tree.item(selected_item, values=values)
+                try:
+                    cells_to_update = self.update_dependent_cells(cell)
+                    self.refresh_values(cells_to_update)
 
-                for dcell in cell._depends_on_me:
-                    dcell.value = Expression(dcell.expression, dcell).evaluate(
-                        self.cells
-                    )
+                except ValueError as e:
+                    cell.value = str(e)
+                    for dcell in cell._i_depend_on:
+                        dcell.value = str(e)
+                    for dcell in cell._depends_on_me:
+                        dcell.value = str(e)
 
-                self.refresh_values(cell._depends_on_me)
+                    self.refresh_values(cell._i_depend_on)
+                    self.refresh_values(cell._depends_on_me)
+                    self.refresh_values([cell])
 
                 close()
 
@@ -136,12 +163,21 @@ class SpreadsheetApp(tk.Tk):
             )  # noqa E501
             update_button.pack()
 
-    def add_data(self):
-        name = self.name_entry.get()
-        size = self.size_entry.get()
-        self.tree.insert("", "end", values=(name, size))
-        self.name_entry.delete(0, tk.END)
-        self.size_entry.delete(0, tk.END)
+    def add_row(self):
+        row = self.tree.get_children()[-1]
+        row_index = int(self.tree.item(row)["text"].replace("R", "")) + 1
+        settings.ROWS += 1
+
+        self.tree.insert(
+            "",
+            "end",
+            text=f"R{row_index}",
+            values=["" for _ in range(settings.COLUMNS)],
+        )  # noqa E501
+        for i in range(settings.COLUMNS):
+            self.cells.append(
+                Cell(row=row_index, col=i, value="", expression="")
+            )  # noqa E501
 
     def edit_data(self):
         selected_item = self.tree.selection()

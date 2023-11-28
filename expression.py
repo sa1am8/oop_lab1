@@ -83,6 +83,7 @@ class Expression:
 
     def evaluate(self, cells) -> str:
         self.current_index = 0
+        self.cell.expression = self.expression
 
         try:
             node = self._parse_expression()
@@ -91,18 +92,15 @@ class Expression:
                 return self.expression
 
             res = self._evaluate_node(node, cells)
-            self.cell.expression = self.expression
             return str(res)
         except ValueError as e:
-            self.cell.expression = ""
             return e.args[0]
 
     def _evaluate_cell_reference(self, cell_reference: str, cells: list[Cell]):
-        cell_reference = cell_reference[1:-1]
-        col = int(cell_reference.split(":")[0].replace("C", ""))
-        row = int(cell_reference.split(":")[1].replace("R", ""))
+        cell_reference = cell_reference[1:-1].replace("C", "").replace("R", "")
+        col, row = map(int, cell_reference.split(":"))
 
-        cell: Cell = cells[col * settings.ROWS + row]
+        cell: Cell = cells[row * settings.COLUMNS + col]
         self.cell._i_depend_on.add(cell)
         cell._depends_on_me.add(self.cell)
 
