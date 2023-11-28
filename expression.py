@@ -66,10 +66,16 @@ class Expression:
                 self.current_index += 1
             return {
                 "type": "number",
-                "value": float(self.expression[start_index : self.current_index]),
+                "value": float(
+                    self.expression[start_index : self.current_index]  # noqa E203
+                ),
             }
-        elif re.match(r"\[C\d+:R\d+\]", self.expression[self.current_index :]):
-            match = re.match(r"\[C\d+:R\d+\]", self.expression[self.current_index :])
+        elif re.match(
+            r"\[C\d+:R\d+\]", self.expression[self.current_index :]  # noqa E203
+        ):
+            match = re.match(
+                r"\[C\d+:R\d+\]", self.expression[self.current_index :]  # noqa E203
+            )
             self.current_index += match.end()
             return {"type": "cell_reference", "value": match.group()}
         else:
@@ -103,7 +109,9 @@ class Expression:
         try:
             return float(cell.value)
         except ValueError:
-            raise ValueError("Number expected in cell reference - " + cell_reference)
+            raise ValueError(
+                "Number expected in cell reference - " + cell_reference
+            )  # noqa E501
 
     def _evaluate_node(self, node, cells):
         if node["type"] == "number":

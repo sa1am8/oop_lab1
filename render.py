@@ -43,7 +43,7 @@ class SpreadsheetApp(tk.Tk):
             )
 
         self.tree.bind("<Double-1>", self.edit_row)
-        # add button to save file
+
         button_save = tk.Button(self, text="Save", command=self.save_file)
         button_save.pack()
 
@@ -56,7 +56,7 @@ class SpreadsheetApp(tk.Tk):
         message.after(5000, message.destroy)
 
         body = FileManager.save_file(self.cells)
-        print(driver.save_sheet(settings.FILE_ID, body))
+        driver.save_sheet(settings.FILE_ID, body)
 
     def convert_to_coord(self, row: str, col: str) -> tuple[int, int]:
         row = (int(row.replace("R", "")),)
@@ -66,12 +66,15 @@ class SpreadsheetApp(tk.Tk):
     def refresh_values(self, cells: list[Cell]):
         for cell in cells:
             if cell.value:
-                values = self.tree.item(f"I{(3-len(str(cell.col))) * '0'}{cell.col+1}")[
+                values = self.tree.item(
+                    f"I{(3-len(str(cell.col))) * '0'}{cell.col+1}"
+                )[  # noqa E501
                     "values"
                 ]
                 values[cell.row] = cell.value
                 self.tree.item(
-                    f"I{(3-len(str(cell.col))) * '0'}{cell.col+1}", values=values
+                    f"I{(3-len(str(cell.col))) * '0'}{cell.col+1}",
+                    values=values,  # noqa E501
                 )
 
     def edit_row(self, event):
@@ -128,7 +131,9 @@ class SpreadsheetApp(tk.Tk):
 
                 close()
 
-            update_button = tk.Button(edit_window, text="Update", command=update_values)
+            update_button = tk.Button(
+                edit_window, text="Update", command=update_values
+            )  # noqa E501
             update_button.pack()
 
     def add_data(self):

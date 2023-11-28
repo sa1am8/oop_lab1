@@ -1,5 +1,7 @@
 class Cell:
-    def __init__(self, row: int, col: int, value: str = None, expression: str = None):
+    def __init__(
+        self, row: int, col: int, value: str = None, expression: str = None
+    ):  # noqa E501
         self.row = row
         self.col = col
         self.value = value

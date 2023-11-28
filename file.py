@@ -38,7 +38,7 @@ class FileManager:
                 {"userEnteredValue": {"formulaValue": cell.expression}}
                 if cell.expression
                 else cell.value
-                for cell in cells[i : i + settings.COLUMNS]
+                for cell in cells[i : i + settings.COLUMNS]  # noqa E203
             ]
             for i in range(0, len(cells), settings.COLUMNS)
         ]
