@@ -100,7 +100,7 @@ class Expression:
         cell_reference = cell_reference[1:-1].replace("C", "").replace("R", "")
         col, row = map(int, cell_reference.split(":"))
 
-        cell: Cell = cells[row * settings.COLUMNS + col]
+        cell: Cell = cells[row][col]
         self.cell._i_depend_on.add(cell)
         cell._depends_on_me.add(self.cell)
 

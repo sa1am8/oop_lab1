@@ -23,7 +23,7 @@ class FileManager:
     def _decompose_file(values, formulas, cells: list[Cell]):
         for row_idx, row in enumerate(values):
             for col_idx, cell_value in enumerate(row):
-                cells[settings.COLUMNS * (row_idx) + (col_idx)] = Cell(
+                cells[row_idx][col_idx] = Cell(
                     row=row_idx,
                     col=col_idx,
                     value=cell_value,

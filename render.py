@@ -7,6 +7,7 @@ from expression import Expression
 from google_drive import driver
 from file import FileManager
 
+from itertools import chain
 
 settings: Settings = get_settings()
 
@@ -18,13 +19,15 @@ class SpreadsheetApp(tk.Tk):
         self.geometry(f"{settings.WINDOW_WIDTH}x{settings.WINDOW_HEIGHT}")
 
         self.cells = [
-            Cell(
-                row=i,
-                col=j,
-                value="",
-            )
-            for i in range(settings.ROWS)
-            for j in range(settings.COLUMNS)
+            [
+                Cell(
+                    row=j,
+                    col=i,
+                    value="",
+                )
+                for i in range(settings.COLUMNS)
+            ]
+            for j in range(settings.ROWS)
         ]
 
         self.window_opened = False
@@ -67,16 +70,16 @@ class SpreadsheetApp(tk.Tk):
         return row, column
 
     def refresh_values(self, cells: list[Cell] | set[Cell]):
+        if cells.__class__ == list:
+            cells = list(chain.from_iterable(cells))
+
         for cell in cells:
             if cell.value:
-                values = self.tree.item(
-                    f"I{(3-len(str(cell.col))) * '0'}{cell.col+1}"
-                )[  # noqa E501
-                    "values"
-                ]
-                values[cell.row] = cell.value
+                row = cell.row + 1 if cell.row < 9 else chr(cell.row + 55)
+                values = self.tree.item(f"I00{row}")["values"]  # noqa E501
+                values[cell.col] = cell.value
                 self.tree.item(
-                    f"I{(3-len(str(cell.col))) * '0'}{cell.col+1}",
+                    f"I00{row}",
                     values=values,  # noqa E501
                 )
 
@@ -107,7 +110,8 @@ class SpreadsheetApp(tk.Tk):
 
             if ccol == -1:
                 return
-            cell: Cell = self.cells[ccol * settings.COLUMNS + crow]
+
+            cell: Cell = self.cells[crow][ccol]
             value = cell.expression if cell.expression else cell.value
             edit_window = tk.Toplevel(self)
             edit_window.title("Edit Row")
@@ -130,7 +134,7 @@ class SpreadsheetApp(tk.Tk):
                 col = self.tree.identify_column(event.x)
                 row = self.tree.identify_row(event.y)
                 crow, ccol = Cell.get_coord(col, row)
-                cell: Cell = self.cells[crow * settings.COLUMNS + ccol]
+                cell: Cell = self.cells[crow][ccol]
                 expression = Expression(updated_values, cell)
 
                 if expression.parse():
@@ -152,9 +156,9 @@ class SpreadsheetApp(tk.Tk):
                     for dcell in cell._depends_on_me:
                         dcell.value = str(e)
 
-                    self.refresh_values(cell._i_depend_on)
-                    self.refresh_values(cell._depends_on_me)
-                    self.refresh_values([cell])
+                self.refresh_values(cell._i_depend_on)
+                self.refresh_values(cell._depends_on_me)
+                self.refresh_values({cell})
 
                 close()
 
@@ -173,11 +177,10 @@ class SpreadsheetApp(tk.Tk):
             "end",
             text=f"R{row_index}",
             values=["" for _ in range(settings.COLUMNS)],
-        )  # noqa E501
-        for i in range(settings.COLUMNS):
-            self.cells.append(
-                Cell(row=row_index, col=i, value="", expression="")
-            )  # noqa E501
+        )
+        self.cells.append(
+            [Cell(row=row_index, col=i, value="") for i in range(settings.COLUMNS)]
+        )
 
     def edit_data(self):
         selected_item = self.tree.selection()
